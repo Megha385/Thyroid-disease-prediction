@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThyroCheck Dashboard - Your Health Hub</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 20%, #bbf7d0 40%, #86efac 60%, #4ade80 80%, #22c55e 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Corner Notification System */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 3000;
+            pointer-events: none;
+        }
+
+        .corner-notification {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #06b6d4;
+            max-width: 350px;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .corner-notification.show {
+            transform: translateX(0);
+        }
+
+        .corner-notification.success {
+            border-left-color: #10b981;
+            background: rgba(240, 253, 244, 0.95);
+        }
+
+        .corner-notification.error {
+            border-left-color: #ef4444;
+            background: rgba(254, 242, 242, 0.95);
+        }
+
+        .corner-notification.info {
+            border-left-color: #06b6d4;
+            background: rgba(240, 249, 255, 0.95);
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .notification-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .notification-text {
+            flex: 1;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1e293b;
+            line-height: 1.4;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #64748b;
+            padding: 0;
+            margin-left: 0.5rem;
+            flex-shrink: 0;
+            transition: color 0.2s ease;
+        }
+
+        .notification-close:hover {
+            color: #1e293b;
+        }
+
+        .notification-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            background: rgba(59, 130, 246, 0.2);
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .notification-progress-bar {
+            height: 100%;
+            background: #06b6d4;
+            width: 100%;
+            transform: translateX(-100%);
+            transition: transform 4s linear;
+        }
+
+        .notification-progress-bar.success {
+            background: #10b981;
+        }
+
+        .notification-progress-bar.error {
+            background: #ef4444;
+        }
+
+        .notification-progress-bar.animate {
+            transform: translateX(0);
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .dashboard-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .dashboard-logo {
+            color: #06b6d4;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .welcome-user {
+            color: #f1f5f9;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+            border: none;
+            border-radius: 20px;
+            padding: 0.5rem 1.2rem;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .dashboard-title h2 {
+            color: #1e293b;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-title p {
+            color: #64748b;
+            font-size: 1.2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .dashboard-card {
+            background: rgba(30, 41, 59, 0.85);
+            border-radius: 25px;
+            padding: 2.5rem;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2), 0 0 40px rgba(59, 130, 246, 0.6);
+            border-color: #06b6d4;
+        }
+
+        .dashboard-emoji {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .dashboard-card h3 {
+            color: #f1f5f9;
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .dashboard-card p {
+            color: #cbd5e1;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        /* Section Content */
+        .section-content {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .back-btn {
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid #3b82f6;
+            border-radius: 20px;
+            padding: 0.8rem 1.5rem;
+            color: #2563eb;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .section-header h2 {
+            color: #1e293b;
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 2px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .info-card h3 {
+            color: #1e293b;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-card p, .info-card li {
+            color: #475569;
+            line-height: 1.6;
+        }
+
+        .info-card ul {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        /* Health Check Styles */
+        .question-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .question-group {
+            margin-bottom: 2rem;
+        }
+
+        .question-group label {
+            display: block;
+            color: #1e293b;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .health-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 15px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            color: #1e293b;
+            transition: all 0.3s ease;
+        }
+
+        .health-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .submit-health-btn {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(45deg, #06b6d4, #10b981);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(6, 182, 212, 0.4);
+        }
+
+        .submit-health-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.6);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .dashboard-content {
+                padding: 1rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-nav {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .dashboard-title h2 {
+                font-size: 2rem;
+            }
+
+            .question-container {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="dashboard-nav">
+            <h1 class="dashboard-logo">ThyroCheck</h1>
+            <div class="user-info">
+                <span class="welcome-user" id="welcomeUser">Welcome!</span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div class="dashboard-content">
+        <!-- Main Dashboard -->
+        <div class="dashboard-main" id="dashboardMain">
+            <div class="dashboard-title">
+                <h2>Your Health Dashboard</h2>
+                <p>Choose what you'd like to explore today</p>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="dashboard-card" onclick="openSection('healthCheck')">
+                    <span class="dashboard-emoji">🩺</span>
+                    <h3>Check Your Health</h3>
+                    <p>Take a quick assessment</p>
+                </div>
+                
+                <div class="dashboard-card" onclick="openSection('medicalTest')">
+                    <span class="dashboard-emoji">🧪</span>
+                    <h3>Medical Test</h3>
+                    <p>Enter lab values only</p>
+                </div>
+                
+                <div class="dashboard-card" onclick="openSection('results')">
+                    <span class="dashboard-emoji">📋</span>
+                    <h3>Get Easy Results</h3>
+                    <p>View your health reports</p>
+                </div>
+                
+                <div class="dashboard-card" onclick="openSection('learn')">
+                    <span class="dashboard-emoji">📚</span>
+                    <h3>Learn About Thyroid</h3>
+                    <p>Educational resources</p>
+                </div>
+                
+                <div class="dashboard-card" onclick="openSection('nutrition')">
+                    <span class="dashboard-emoji">🍎</span>
+                    <h3>Nutrition Plans</h3>
+                    <p>Personalized meal plans</p>
+                </div>
+                
+                <div class="dashboard-card" onclick="openSection('exercise')">
+                    <span class="dashboard-emoji">🏃‍♀️</span>
+                    <h3>Exercise Guide</h3>
+                    <p>Workout recommendations</p>
+                </div>
+                
+                <div class="dashboard-card" onclick="openSection('tips')">
+                    <span class="dashboard-emoji">💡</span>
+                    <h3>Get Tips</h3>
+                    <p>Daily health advice</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Check Section -->
+        <div class="section-content" id="healthCheckSection" style="display: none;">
+            <div class="section-header">
+                <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+                <h2>🩺 Symptom-Only Health Check</h2>
+            </div>
+            <div class="health-check-content">
+                <div class="question-container">
+                    <p style="margin-bottom: 1rem; color: #9ca3af;">Answer these symptom-focused questions (only symptoms — no lab fields):</p>
+
+                    <style>
+                        .sym-question { display:flex; align-items:center; gap:1rem; padding:0.65rem; margin:0.5rem 0; background: rgba(99,102,241,0.04); border-radius:8px; }
+                        .sym-question label { flex:1; margin:0; font-weight:500; color:#1f2937; }
+                        .sym-question select { min-width:160px; padding:0.45rem; border-radius:6px; border:1px solid #d1d5db; }
+                    </style>
+
+                    <div class="sym-question">
+                        <label>1. How often do you feel tired?</label>
+                        <select id="s_tiredness">
+                            <option value="">Select...</option>
+                            <option value="never">Never</option>
+                            <option value="sometimes">Sometimes</option>
+                            <option value="often">Often</option>
+                            <option value="always">Always</option>
+                        </select>
+                    </div>
+
+                    <div class="sym-question">
+                        <label>2. Mood changes (irritability, low mood)?</label>
+                        <select id="s_mood">
+                            <option value="">Select...</option>
+                            <option value="no">No</option>
+                            <option value="mild">Mild</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="severe">Severe</option>
+                        </select>
+                    </div>
+
+                    <div class="sym-question">
+                        <label>3. Weight change without trying?</label>
+                        <select id="s_weight">
+                            <option value="">Select...</option>
+                            <option value="no">No</option>
+                            <option value="gain">Weight gain</option>
+                            <option value="loss">Weight loss</option>
+                        </select>
+                    </div>
+
+                    <div class="sym-question">
+                        <label>4. Skin changes (dryness, thinning, sweating)?</label>
+                        <select id="s_skin">
+                            <option value="">Select...</option>
+                            <option value="none">None</option>
+                            <option value="dry">Dry</option>
+                            <option value="oily">Oily/Sweaty</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="sym-question">
+                        <label>5. Shortness of breath or breathing issues?</label>
+                        <select id="s_breathing">
+                            <option value="">Select...</option>
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                        </select>
+                    </div>
+
+                    <div class="sym-question">
+                        <label>6. Heart palpitations or rapid heartbeat?</label>
+                        <select id="s_palpitations">
+                            <option value="">Select...</option>
+                            <option value="no">No</option>
+                            <option value="occasionally">Occasionally</option>
+                            <option value="frequently">Frequently</option>
+                        </select>
+                    </div>
+
+                    <div class="sym-question">
+                        <label>7. Heat or cold intolerance?</label>
+                        <select id="s_temp">
+                            <option value="">Select...</option>
+                            <option value="none">None</option>
+                            <option value="heat">Heat intolerance</option>
+                            <option value="cold">Cold intolerance</option>
+                        </select>
+                    </div>
+
+                    <div class="sym-question">
+                        <label>8. Changes in bowel habits (constipation/diarrhea)?</label>
+                        <select id="s_bowel">
+                            <option value="">Select...</option>
+                            <option value="normal">Normal</option>
+                            <option value="constipation">Constipation</option>
+                            <option value="diarrhea">Diarrhea</option>
+                        </select>
+                    </div>
+
+                    <div class="sym-question">
+                        <label>9. Hair loss or thinning?</label>
+                        <select id="s_hair">
+                            <option value="">Select...</option>
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                        </select>
+                    </div>
+
+                    <div class="sym-question">
+                        <label>10. Changes in appetite?</label>
+                        <select id="s_appetite">
+                            <option value="">Select...</option>
+                            <option value="normal">Normal</option>
+                            <option value="increased">Increased</option>
+                            <option value="decreased">Decreased</option>
+                        </select>
+                    </div>
+
+                    <div class="sym-question">
+                        <label>11. Cognitive issues (memory, concentration)?</label>
+                        <select id="s_cognitive">
+                            <option value="">Select...</option>
+                            <option value="no">No</option>
+                            <option value="mild">Mild</option>
+                            <option value="significant">Significant</option>
+                        </select>
+                    </div>
+
+                    <div class="sym-question">
+                        <label>12. Any other concerning symptom?</label>
+                        <input type="text" id="s_other" placeholder="Optional - brief description" style="min-width:260px; padding:0.45rem; border-radius:6px; border:1px solid #d1d5db;">
+                    </div>
+
+                    <button class="submit-health-btn" onclick="submitHealthCheck()" style="margin-top: 1rem;">Get My Results</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Learn Section -->
+        <div class="section-content" id="learnSection" style="display: none;">
+            <div class="section-header">
+                <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+                <h2>📚 Learn About Thyroid</h2>
+            </div>
+            <div class="learn-content">
+                <div class="info-card">
+                    <h3>🦋 What is the Thyroid?</h3>
+                    <p>Your thyroid is a small, butterfly-shaped gland in your neck. Think of it as your body's engine controller - it helps control how fast or slow your body works!</p>
+                </div>
+                
+                <div class="info-card">
+                    <h3>⚡ What Does It Do?</h3>
+                    <p>The thyroid makes hormones that control:</p>
+                    <ul>
+                        <li>How fast your heart beats</li>
+                        <li>How quickly you burn calories</li>
+                        <li>Your body temperature</li>
+                        <li>Your energy levels</li>
+                    </ul>
+                </div>
+                
+                <div class="info-card">
+                    <h3>🚨 Common Problems</h3>
+                    <p><strong>Hyperthyroid:</strong> When it works too fast (like a racing car engine)</p>
+                    <p><strong>Hypothyroid:</strong> When it works too slow (like a sluggish engine)</p>
+                </div>
+                
+                <div class="info-card">
+                    <h3>🩺 Signs to Watch For</h3>
+                    <ul>
+                        <li>Feeling very tired or very energetic</li>
+                        <li>Weight changes without trying</li>
+                        <li>Feeling too hot or too cold</li>
+                        <li>Heart beating fast or slow</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        
+        <!-- Medical Test Section -->
+        <div class="section-content" id="medicalTestSection" style="display: none;">
+            <div class="section-header">
+                <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+                <h2>🧪 Medical Test - Lab Values</h2>
+            </div>
+            <div class="medical-test-content">
+                <div class="info-card">
+                    <h3>Enter only medical test values</h3>
+                    <p>Provide the lab measurements you have (TSH, T3, Total T4, T4 Uptake, FTI, TBG).</p>
+                </div>
+
+                <div class="question-container">
+                    <div class="inline-question">
+                        <label>TSH measured?</label>
+                        <select id="mt_tsh_measured" class="health-input">
+                            <option value="">Select...</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                        <label style="margin-left:1rem;">TSH (mIU/L)</label>
+                        <input type="number" id="mt_tsh" step="0.01" min="0.01" max="100" placeholder="0.1-100">
+                    </div>
+
+                    <div class="inline-question">
+                        <label>T3 measured?</label>
+                        <select id="mt_t3_measured" class="health-input">
+                            <option value="">Select...</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                        <label style="margin-left:1rem;">T3 (pmol/L)</label>
+                        <input type="number" id="mt_t3" step="0.01" min="0.1" max="50" placeholder="1-20">
+                    </div>
+
+                    <div class="inline-question">
+                        <label>Total T4 measured?</label>
+                        <select id="mt_tt4_measured" class="health-input">
+                            <option value="">Select...</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                        <label style="margin-left:1rem;">Total T4 (nmol/L)</label>
+                        <input type="number" id="mt_tt4" step="0.01" min="5" max="300" placeholder="20-200">
+                    </div>
+
+                    <div class="inline-question">
+                        <label>T4 Uptake</label>
+                        <input type="number" id="mt_t4u" step="0.01" min="0.1" max="5" placeholder="0.5-2">
+                        <label style="margin-left:1rem;">FTI measured?</label>
+                        <select id="mt_fti_measured" class="health-input">
+                            <option value="">Select...</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                        <label style="margin-left:1rem;">FTI</label>
+                        <input type="number" id="mt_fti" step="0.01" min="1" max="500" placeholder="20-250">
+                    </div>
+
+                    <div class="inline-question">
+                        <label>TBG measured?</label>
+                        <select id="mt_tbg_measured" class="health-input">
+                            <option value="">Select...</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                        <label style="margin-left:1rem;">TBG (mg/L)</label>
+                        <input type="number" id="mt_tbg" step="0.01" min="1" max="100" placeholder="5-50">
+                    </div>
+
+                    <button class="submit-health-btn" onclick="submitMedicalTest()" style="margin-top:1rem;">Analyze Medical Test</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-content" id="resultsSection" style="display: none;">
+            <div class="section-header">
+                <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+                <h2>📋 Your Results</h2>
+            </div>
+            <div class="results-content">
+                <div class="info-card">
+                    <h3>📊 Health Assessment Results</h3>
+                    <p>Complete a health check to see your results here!</p>
+                    <p>Click on "Check Your Health" from the dashboard to take your first assessment.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nutrition Section -->
+        <div class="section-content" id="nutritionSection" style="display: none;">
+            <div class="section-header">
+                <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+                <h2>🍎 Nutrition Plans</h2>
+            </div>
+            <div class="nutrition-content">
+                <div class="info-card">
+                    <h3>🥗 Thyroid-Friendly Foods</h3>
+                    <ul>
+                        <li><strong>Leafy Greens:</strong> Spinach, kale, and arugula</li>
+                        <li><strong>Fish:</strong> Salmon, tuna, and sardines (rich in omega-3)</li>
+                        <li><strong>Nuts & Seeds:</strong> Brazil nuts, sunflower seeds</li>
+                        <li><strong>Whole Grains:</strong> Quinoa, brown rice, oats</li>
+                        <li><strong>Fruits:</strong> Berries, apples, and citrus fruits</li>
+                    </ul>
+                </div>
+                
+                <div class="info-card">
+                    <h3>🚫 Foods to Limit</h3>
+                    <ul>
+                        <li>Processed foods high in sodium</li>
+                        <li>Excessive caffeine</li>
+                        <li>Refined sugars</li>
+                        <li>Fried foods</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exercise Section -->
+        <div class="section-content" id="exerciseSection" style="display: none;">
+            <div class="section-header">
+                <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+                <h2>🏃‍♀️ Exercise Guide</h2>
+            </div>
+            <div class="exercise-content">
+                <div class="info-card">
+                    <h3>💪 Best Exercises for Thyroid Health</h3>
+                    <ul>
+                        <li><strong>Walking:</strong> 30 minutes daily at a comfortable pace</li>
+                        <li><strong>Swimming:</strong> Low-impact, full-body workout</li>
+                        <li><strong>Yoga:</strong> Reduces stress and improves flexibility</li>
+                        <li><strong>Light Weight Training:</strong> 2-3 times per week</li>
+                        <li><strong>Cycling:</strong> Great for cardiovascular health</li>
+                    </ul>
+                </div>
+                
+                <div class="info-card">
+                    <h3>⏰ Exercise Tips</h3>
+                    <ul>
+                        <li>Start slowly and gradually increase intensity</li>
+                        <li>Listen to your body and rest when needed</li>
+                        <li>Stay hydrated during workouts</li>
+                        <li>Consistency is more important than intensity</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips Section -->
+        <div class="section-content" id="tipsSection" style="display: none;">
+            <div class="section-header">
+                <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+                <h2>💡 Daily Tips</h2>
+            </div>
+            <div class="tips-content">
+                <div class="info-card">
+                    <h3>🌟 Today's Tip</h3>
+                    <p><strong>Get Quality Sleep!</strong> Your thyroid works best when you sleep 7-9 hours each night. Create a relaxing bedtime routine for better rest.</p>
+                </div>
+                
+                <div class="info-card">
+                    <h3>📅 Weekly Health Tips</h3>
+                    <ul>
+                        <li><strong>Monday:</strong> Start your week with a healthy breakfast</li>
+                        <li><strong>Tuesday:</strong> Take a 10-minute walk outside</li>
+                        <li><strong>Wednesday:</strong> Practice deep breathing exercises</li>
+                        <li><strong>Thursday:</strong> Drink plenty of water throughout the day</li>
+                        <li><strong>Friday:</strong> Eat a colorful, nutrient-rich meal</li>
+                        <li><strong>Weekend:</strong> Focus on relaxation and stress relief</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get current user from localStorage
+        const currentUser = JSON.parse(localStorage.getItem('thyrocheck_current_user') || 'null');
+
+        // Corner Notification System
+        function showNotification(message, type = 'info', icon = '💡') {
+            const container = document.getElementById('notificationContainer');
+            
+            const notification = document.createElement('div');
+            notification.className = `corner-notification ${type}`;
+            
+            notification.innerHTML = `
+                <div class="notification-content">
+                    <span class="notification-icon">${icon}</span>
+                    <span class="notification-text">${message}</span>
+                    <button class="notification-close" onclick="closeNotification(this)">×</button>
+                </div>
+                <div class="notification-progress">
+                    <div class="notification-progress-bar ${type}"></div>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+                const progressBar = notification.querySelector('.notification-progress-bar');
+                progressBar.classList.add('animate');
+            }, 100);
+            
+            setTimeout(() => {
+                closeNotification(notification.querySelector('.notification-close'));
+            }, 4000);
+        }
+
+        function closeNotification(button) {
+            const notification = button.closest('.corner-notification');
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }
+
+        // Dashboard Functions
+        function backToDashboard() {
+            document.querySelectorAll('.section-content').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById('dashboardMain').style.display = 'block';
+        }
+
+        function openSection(sectionName) {
+            document.getElementById('dashboardMain').style.display = 'none';
+            
+            document.querySelectorAll('.section-content').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            const sectionMap = {
+                'healthCheck': 'healthCheckSection',
+                'medicalTest': 'medicalTestSection',
+                'results': 'resultsSection',
+                'learn': 'learnSection',
+                'nutrition': 'nutritionSection',
+                'exercise': 'exerciseSection',
+                'tips': 'tipsSection'
+            };
+            
+            const sectionId = sectionMap[sectionName];
+            if (sectionId) {
+                document.getElementById(sectionId).style.display = 'block';
+                
+                const messages = {
+                    'healthCheck': 'Ready to check your thyroid health! Answer the questions below',
+                    'medicalTest': 'Enter your lab values to get a focused medical prediction',
+                    'results': 'Your health results will appear here after completing an assessment',
+                    'learn': 'Learn all about your thyroid gland and how it affects your health',
+                    'nutrition': 'Discover foods that support healthy thyroid function',
+                    'exercise': 'Find the best exercises for thyroid health',
+                    'tips': 'Daily tips to keep your thyroid healthy'
+                };
+                
+                showNotification(messages[sectionName], 'info', '📖');
+            }
+        }
+
+        function submitHealthCheck() {
+            // Collect symptom-only inputs
+            const keys = ['s_tiredness','s_mood','s_weight','s_skin','s_breathing','s_palpitations','s_temp','s_bowel','s_hair','s_appetite','s_cognitive','s_other'];
+            const answers = {};
+            let allAnswered = true;
+            keys.forEach(k => {
+                const el = document.getElementById(k);
+                const v = el ? el.value : '';
+                answers[k] = v;
+                if (k !== 's_other' && !v) allAnswered = false; // s_other is optional
+            });
+
+            if (!allAnswered) {
+                showNotification('Please answer all symptom questions (except "other")', 'error', '❌');
+                return;
+            }
+
+            const button = document.querySelector('.submit-health-btn');
+            button.textContent = 'Analyzing Symptoms...';
+            button.disabled = true;
+
+            setTimeout(() => {
+                // Simple symptom-based scoring
+                let score = 0;
+                // Tiredness
+                if (answers.s_tiredness === 'often') score += 2;
+                if (answers.s_tiredness === 'always') score += 3;
+                // Mood
+                if (answers.s_mood === 'mild') score += 1;
+                if (answers.s_mood === 'moderate') score += 2;
+                if (answers.s_mood === 'severe') score += 3;
+                // Weight
+                if (answers.s_weight === 'gain') score += 2;
+                if (answers.s_weight === 'loss') score += 2;
+                // Skin
+                if (answers.s_skin === 'dry') score += 2;
+                if (answers.s_skin === 'oily') score += 1;
+                // Breathing
+                if (answers.s_breathing === 'yes') score += 2;
+                // Palpitations
+                if (answers.s_palpitations === 'occasionally') score += 1;
+                if (answers.s_palpitations === 'frequently') score += 3;
+                // Temp intolerance
+                if (answers.s_temp === 'heat') score += 2;
+                if (answers.s_temp === 'cold') score += 2;
+                // Bowel
+                if (answers.s_bowel === 'constipation') score += 2;
+                if (answers.s_bowel === 'diarrhea') score += 2;
+                // Hair
+                if (answers.s_hair === 'yes') score += 2;
+                // Appetite
+                if (answers.s_appetite === 'increased') score += 1;
+                if (answers.s_appetite === 'decreased') score += 1;
+                // Cognitive
+                if (answers.s_cognitive === 'mild') score += 1;
+                if (answers.s_cognitive === 'significant') score += 3;
+
+                // Heuristic status determination
+                let thyroidStatus = 'Normal';
+                let confidence = 85;
+
+                // Heuristics: weight gain + cold intolerance + tiredness => hypothyroid
+                if ((answers.s_weight === 'gain' || answers.s_weight === 'no') && answers.s_temp === 'cold' && (answers.s_tiredness === 'often' || answers.s_tiredness === 'always')) {
+                    thyroidStatus = 'Suspected Hypothyroid';
+                    confidence = 78 + Math.min(15, score);
+                }
+                // weight loss + heat intolerance + palpitations => hyper
+                if (answers.s_weight === 'loss' && answers.s_temp === 'heat' && (answers.s_palpitations === 'occasionally' || answers.s_palpitations === 'frequently')) {
+                    thyroidStatus = 'Suspected Hyperthyroid';
+                    confidence = 78 + Math.min(15, score);
+                }
+
+                if (score >= 12) {
+                    if (thyroidStatus.startsWith('Suspected')) {
+                        confidence = Math.min(95, confidence + 5);
+                    } else {
+                        thyroidStatus = 'Thyroid Disorder Suspected';
+                        confidence = 80 + Math.min(10, score);
+                    }
+                } else if (score >= 6) {
+                    if (thyroidStatus === 'Normal') thyroidStatus = 'Possible Thyroid Concern';
+                    confidence = 75 + Math.min(15, score);
+                } else {
+                    thyroidStatus = 'Normal';
+                    confidence = 90;
+                }
+
+                const riskLevel = score <= 3 ? 'Low Risk' : score <= 7 ? 'Moderate Risk' : score <= 12 ? 'High Risk' : 'Very High Risk';
+
+                const results = {
+                    date: new Date().toLocaleDateString(),
+                    time: new Date().toLocaleTimeString(),
+                    score: score,
+                    riskLevel: riskLevel,
+                    thyroidStatus: thyroidStatus,
+                    confidence: Math.round(confidence),
+                    text: `${currentUser.name.split(' ')[0]}, based on your symptoms this assessment indicates: ${thyroidStatus}. Please consult a healthcare provider for confirmation.`,
+                    answers: answers,
+                    totalQuestions: keys.length
+                };
+
+                localStorage.setItem(`thyrocheck_results_${currentUser.id}`, JSON.stringify(results));
+
+                showNotification('Symptom assessment complete! Viewing your results...', 'success', '✅');
+
+                const resultsContent = document.querySelector('.results-content');
+                resultsContent.innerHTML = `
+                    <div class="info-card">
+                        <h3>📊 Your Symptom Assessment Results</h3>
+                        <p><strong>Date & Time:</strong> ${results.date} at ${results.time}</p>
+
+                        <div style="margin-top: 1.5rem; padding: 1.5rem; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1)); border-radius: 12px; border: 2px solid #3b82f6;">
+                            <p style="text-align: center; font-size: 1.2rem; margin-bottom: 1rem;"><strong>🔍 Thyroid Status</strong></p>
+                            <p style="text-align: center; font-size: 2rem; font-weight: bold; color: ${results.thyroidStatus === 'Normal' ? '#10b981' : results.thyroidStatus.toLowerCase().includes('hypo') ? '#3b82f6' : '#ef6c4e'}; margin: 1rem 0;">
+                                ${results.thyroidStatus}
+                            </p>
+                            <p style="text-align: center; font-size: 1rem; color: #6b7280; margin-top: 1rem;">
+                                <strong>Assessment Confidence:</strong> <span style="background: ${results.confidence >= 90 ? '#10b981' : results.confidence >= 80 ? '#3b82f6' : '#f59e0b'}; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-weight: bold;">${results.confidence}%</span>
+                            </p>
+                        </div>
+
+                        <p style="margin-top: 1.5rem; font-size: 1.05rem; padding: 1rem; background: rgba(${results.thyroidStatus === 'Normal' ? '16, 185, 129' : results.thyroidStatus.toLowerCase().includes('hypo') ? '59, 130, 246' : '239, 108, 78'}, 0.1); border-radius: 8px;">
+                            ${results.text}
+                        </p>
+
+                        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(34, 197, 94, 0.1); border-radius: 10px;">
+                            <p><strong>📌 Next Steps:</strong></p>
+                            <ul style="margin-left: 1.5rem;">
+                                <li>Consider scheduling a visit with your healthcare provider</li>
+                                <li>Bring this symptom summary and any lab results you have</li>
+                                <li>Discuss targeted testing (TSH, Free T4, Free T3) with your clinician</li>
+                            </ul>
+                        </div>
+
+                        <button onclick="downloadReport()" style="margin-top: 1.5rem; width: 100%; padding: 0.75rem; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.3s;">
+                            📥 Download Symptom Report
+                        </button>
+                    </div>
+                `;
+
+                button.textContent = 'Get My Results';
+                button.disabled = false;
+
+                // Clear symptom inputs
+                keys.forEach(k => { const el = document.getElementById(k); if (el) el.value = ''; });
+
+                // Switch to results
+                document.getElementById('healthCheckSection').style.display = 'none';
+                document.getElementById('resultsSection').style.display = 'block';
+
+            }, 1000);
+        }
+
+        function downloadReport() {
+            const results = JSON.parse(localStorage.getItem(`thyrocheck_results_${currentUser.id}`));
+            if (!results) {
+                showNotification('No results found to download', 'error', '❌');
+                return;
+            }
+
+            // Create CSV content
+            let csvContent = 'THYROID SYMPTOM ASSESSMENT REPORT\n';
+            csvContent += `Date: ${results.date}\n`;
+            csvContent += `Time: ${results.time}\n`;
+            csvContent += `Patient Name: ${currentUser.name}\n`;
+            csvContent += `Patient Email: ${currentUser.email}\n\n`;
+
+            csvContent += '=== ASSESSMENT RESULTS ===\n';
+            csvContent += `Thyroid Status: ${results.thyroidStatus}\n`;
+            csvContent += `Assessment Confidence: ${results.confidence}%\n`;
+            csvContent += `Risk Level: ${results.riskLevel}\n`;
+            csvContent += `Risk Score: ${results.score}\n\n`;
+
+            csvContent += '=== ASSESSMENT MESSAGE ===\n';
+            csvContent += `${results.text}\n\n`;
+
+            csvContent += '=== DETAILED SYMPTOM ANSWERS ===\n';
+            for (const k in results.answers) {
+                csvContent += `${k}: ${results.answers[k] || 'Not answered'}\n`;
+            }
+
+            csvContent += '\n=== IMPORTANT MEDICAL DISCLAIMER ===\n';
+            csvContent += 'This assessment is based on reported symptoms and is NOT a medical diagnosis.\n';
+            csvContent += 'Always consult with qualified healthcare professionals for proper medical advice and diagnosis.\n\n';
+
+            csvContent += '=== RECOMMENDED NEXT STEPS ===\n';
+            csvContent += '1. Schedule a consultation with your healthcare provider\n';
+            csvContent += '2. Bring your symptom summary and any lab results to your appointment\n';
+            csvContent += '3. Discuss targeted testing (TSH, Free T4, Free T3) with your clinician\n';
+
+            // Create blob and download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Thyroid_Symptom_Assessment_${results.date.replace(/\//g, '-')}.csv`);
+            link.style.visibility = 'hidden';
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showNotification('Report downloaded successfully! 📥', 'success', '✅');
+        }
+
+        function submitMedicalTest() {
+            const measured = {
+                tsh: document.getElementById('mt_tsh_measured').value,
+                t3: document.getElementById('mt_t3_measured').value,
+                tt4: document.getElementById('mt_tt4_measured').value,
+                fti: document.getElementById('mt_fti_measured').value,
+                tbg: document.getElementById('mt_tbg_measured').value
+            };
+
+            const vals = {
+                tsh: parseFloat(document.getElementById('mt_tsh').value) || null,
+                t3: parseFloat(document.getElementById('mt_t3').value) || null,
+                tt4: parseFloat(document.getElementById('mt_tt4').value) || null,
+                t4u: parseFloat(document.getElementById('mt_t4u').value) || null,
+                fti: parseFloat(document.getElementById('mt_fti').value) || null,
+                tbg: parseFloat(document.getElementById('mt_tbg').value) || null
+            };
+
+            // Require at least one measured test and numeric value if measured yes
+            let provided = 0;
+            ['tsh','t3','tt4','fti','tbg'].forEach(k => {
+                if (measured[k] === 'yes') {
+                    if (!vals[k]) provided = provided; else provided += 1;
+                }
+            });
+
+            if (provided === 0) {
+                showNotification('Please provide at least one lab value and mark it as measured', 'error', '❌');
+                return;
+            }
+
+            const button = document.querySelector('#medicalTestSection .submit-health-btn');
+            button.textContent = 'Analyzing...';
+            button.disabled = true;
+
+            // Prepare payload for backend prediction
+            const payload = {
+                tsh: vals.tsh,
+                t3: vals.t3,
+                tt4: vals.tt4,
+                t4u: vals.t4u,
+                fti: vals.fti,
+                tbg: vals.tbg
+            };
+
+            fetch('/api/predict_medical_test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(json => {
+                if (json && json.label) {
+                    const results = {
+                        date: new Date().toLocaleDateString(),
+                        time: new Date().toLocaleTimeString(),
+                        thyroidStatus: json.label,
+                        confidence: json.probability || 0,
+                        values: vals
+                    };
+                    localStorage.setItem(`thyrocheck_medical_${currentUser.id}`, JSON.stringify(results));
+
+                    const resultsContent = document.querySelector('.results-content');
+                    resultsContent.innerHTML = `
+                        <div class="info-card">
+                            <h3>🧾 Medical Test Result</h3>
+                            <p><strong>Date & Time:</strong> ${results.date} at ${results.time}</p>
+                            <p style="font-size:1.5rem; font-weight:bold; color:${results.thyroidStatus === 'Normal' ? '#10b981' : results.thyroidStatus.toLowerCase().includes('hypo') ? '#3b82f6' : '#ef4444'}">${results.thyroidStatus}</p>
+                            <p><strong>Confidence:</strong> ${results.confidence}%</p>
+                            <div style="margin-top:1rem; padding:1rem; background: rgba(59, 130, 246, 0.05); border-radius:8px;">
+                                <p><strong>Provided Values:</strong></p>
+                                <ul>
+                                    <li>TSH: ${vals.tsh ?? 'N/A'}</li>
+                                    <li>T3: ${vals.t3 ?? 'N/A'}</li>
+                                    <li>Total T4: ${vals.tt4 ?? 'N/A'}</li>
+                                    <li>T4 Uptake: ${vals.t4u ?? 'N/A'}</li>
+                                    <li>FTI: ${vals.fti ?? 'N/A'}</li>
+                                    <li>TBG: ${vals.tbg ?? 'N/A'}</li>
+                                </ul>
+                            </div>
+                            <div style="margin-top:1rem; padding:1rem; background: rgba(59, 130, 246, 0.1); border-radius:10px; border-left:4px solid #3b82f6;">
+                                <p><strong>💡 Important:</strong> This result is based on the lab values you provided. It is NOT a medical diagnosis. Consult a healthcare professional for confirmation.</p>
+                            </div>
+                            <button onclick="downloadMedicalReport()" style="margin-top:1rem; width:100%; padding:0.75rem; background:#2563eb; color:white; border:none; border-radius:8px;">📥 Download Medical Report</button>
+                        </div>
+                    `;
+
+                    document.getElementById('medicalTestSection').style.display = 'none';
+                    document.getElementById('resultsSection').style.display = 'block';
+                    showNotification('Medical test analyzed — see results', 'success', '✅');
+                } else {
+                    // If backend did not return a label, fall back to client-side rules
+                    showNotification('Server did not return prediction — using local rule-based fallback', 'info', '⚠️');
+                    // reuse existing rule-based logic as a fallback
+                    setTimeout(() => { button.textContent = 'Analyze Medical Test'; button.disabled = false; submitMedicalTestFallback(vals); }, 300);
+                }
+            })
+            .catch(err => {
+                console.error('Prediction API error:', err);
+                showNotification('Unable to reach prediction server — using local fallback', 'error', '❌');
+                // fallback
+                setTimeout(() => { button.textContent = 'Analyze Medical Test'; button.disabled = false; submitMedicalTestFallback(vals); }, 300);
+            });
+        }
+
+        // Local fallback preserved as separate function
+        function submitMedicalTestFallback(vals) {
+            let status = 'Normal';
+            let confidence = 85;
+
+            if (vals.tsh && vals.tsh > 4.0) {
+                if (vals.tt4 && vals.tt4 < 80) { status = 'Hypothyroid'; confidence = 92; }
+                else { status = 'Suspected Hypothyroid'; confidence = 78; }
+            }
+            if (vals.tsh && vals.tsh < 0.4) {
+                if (vals.tt4 && vals.tt4 > 140) { status = 'Hyperthyroid'; confidence = 90; }
+                else { status = 'Suspected Hyperthyroid'; confidence = 76; }
+            }
+            if (vals.t3 && vals.t3 > 8 && vals.tsh && vals.tsh < 0.4) { status = 'Hyperthyroid'; confidence = Math.max(confidence, 91); }
+
+            const results = { date: new Date().toLocaleDateString(), time: new Date().toLocaleTimeString(), thyroidStatus: status, confidence: confidence, values: vals };
+            localStorage.setItem(`thyrocheck_medical_${currentUser.id}`, JSON.stringify(results));
+            const resultsContent = document.querySelector('.results-content');
+            resultsContent.innerHTML = `
+                <div class="info-card">
+                    <h3>🧾 Medical Test Result (Local)</h3>
+                    <p><strong>Date & Time:</strong> ${results.date} at ${results.time}</p>
+                    <p style="font-size:1.5rem; font-weight:bold;">${results.thyroidStatus}</p>
+                    <p><strong>Confidence:</strong> ${results.confidence}%</p>
+                    <div style="margin-top:1rem; padding:1rem; background: rgba(59, 130, 246, 0.05); border-radius:8px;">
+                        <p><strong>Provided Values:</strong></p>
+                        <ul>
+                            <li>TSH: ${vals.tsh ?? 'N/A'}</li>
+                            <li>T3: ${vals.t3 ?? 'N/A'}</li>
+                            <li>Total T4: ${vals.tt4 ?? 'N/A'}</li>
+                            <li>T4 Uptake: ${vals.t4u ?? 'N/A'}</li>
+                            <li>FTI: ${vals.fti ?? 'N/A'}</li>
+                            <li>TBG: ${vals.tbg ?? 'N/A'}</li>
+                        </ul>
+                    </div>
+                    <div style="margin-top:1rem; padding:1rem; background: rgba(59, 130, 246, 0.1); border-radius:10px; border-left:4px solid #3b82f6;">
+                        <p><strong>💡 Important:</strong> This result is based on local rules. It is NOT a medical diagnosis. Consult a healthcare professional for confirmation.</p>
+                    </div>
+                    <button onclick="downloadMedicalReport()" style="margin-top:1rem; width:100%; padding:0.75rem; background:#2563eb; color:white; border:none; border-radius:8px;">📥 Download Medical Report</button>
+                </div>
+            `;
+            document.getElementById('medicalTestSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+        function downloadMedicalReport() {
+            const results = JSON.parse(localStorage.getItem(`thyrocheck_medical_${currentUser.id}`));
+            if (!results) { showNotification('No medical test found to download', 'error', '❌'); return; }
+
+            let txt = `Medical Test Report\nDate: ${results.date} ${results.time}\nStatus: ${results.thyroidStatus}\nConfidence: ${results.confidence}%\n\nValues:\n`;
+            for (const k in results.values) txt += `${k.toUpperCase()}: ${results.values[k] ?? 'N/A'}\n`;
+
+            const blob = new Blob([txt], { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Medical_Test_${results.date.replace(/\//g,'-')}.txt`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showNotification('Medical report downloaded', 'success', '✅');
+        }
+
+        function logout() {
+            localStorage.removeItem('thyrocheck_current_user');
+            showNotification('Logging you out...', 'info', '👋');
+            
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            if (!currentUser) {
+                showNotification('Please log in to access the dashboard', 'error', '🔐');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+                return;
+            }
+
+            // Update welcome message
+            const welcomeUser = document.getElementById('welcomeUser');
+            welcomeUser.textContent = `Welcome, ${currentUser.name.split(' ')[0]}!`;
+            
+            // Show welcome notification
+            showNotification(`Hello ${currentUser.name.split(' ')[0]}! Ready to continue your thyroid health journey?`, 'success', '🎯');
+
+            // Load existing results if any
+            const existingResults = localStorage.getItem(`thyrocheck_results_${currentUser.id}`);
+            if (existingResults) {
+                const results = JSON.parse(existingResults);
+                const resultsContent = document.querySelector('.results-content');
+                resultsContent.innerHTML = `
+                    <div class="info-card">
+                        <h3>📊 Your Latest Health Assessment</h3>
+                        <p><strong>Date:</strong> ${results.date}</p>
+                        <p>${results.text}</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: rgba(59, 130, 246, 0.1); border-radius: 10px;">
+                            <p><strong>Remember:</strong> This is just a simple assessment. Always consult with healthcare professionals for proper medical advice!</p>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThyroCheck - Your Health Results</title>
+    <link rel="stylesheet" href="../static/css/results.css">
+</head>
+
+<body>
+
+    <div class="results-header">
+        <h1>Your Thyroid Health Results</h1>
+        <p>Detailed analysis of your health assessment</p>
+        <button onclick="goBack()" class="back-btn">← Back to Dashboard</button>
+    </div>
+
+    <div class="results-container">
+
+        <div class="results-card">
+            <h2>Assessment Summary</h2>
+            <p id="assessmentDate"></p>
+
+            <div class="score-box">
+                <h3 id="predictionText">Analyzing...</h3>
+                <p id="confidenceText"></p>
+            </div>
+        </div>
+
+        <div class="results-card">
+            <h2>Your Responses</h2>
+            <pre id="responsesBox"></pre>
+        </div>
+
+        <div class="results-card">
+            <h2>AI Model Details</h2>
+            <pre id="modelDetails"></pre>
+        </div>
+
+        <div class="results-card">
+            <h2>Actions</h2>
+            <button onclick="retakeAssessment()">🔄 Retake Assessment</button>
+            <button onclick="goBack()">🏠 Back to Dashboard</button>
+        </div>
+    </div>
+
+    <script>
+        const results = JSON.parse(localStorage.getItem("thyrocheck_latest_result") || "null");
+
+        function loadResults() {
+            if (!results) {
+                document.querySelector(".results-container").innerHTML =
+                    "<h2>No results found. Please complete an assessment first.</h2>";
+                return;
+            }
+
+            // Header info
+            document.getElementById("assessmentDate").innerText =
+                "Assessment Date: " + (results.date || "Not recorded");
+
+            // Prediction
+            document.getElementById("predictionText").innerText =
+                "AI Prediction: " + (results.prediction || results.ml_prediction || "Unknown");
+
+            document.getElementById("confidenceText").innerText =
+                "Confidence: " + (results.confidence || results.ml_confidence || "N/A") + "%";
+
+            // User responses
+            document.getElementById("responsesBox").innerText =
+                JSON.stringify(results.answers || {}, null, 4);
+
+            // ML model details
+            document.getElementById("modelDetails").innerText =
+                JSON.stringify(results.full_result || results.ml_full_result || {}, null, 4);
+        }
+
+        function goBack() {
+            window.location.href = "/dashboard";
+        }
+
+        function retakeAssessment() {
+            window.location.href = "/check_health";
+        }
+
+        document.addEventListener("DOMContentLoaded", loadResults);
+    </script>
+
+</body>
+</html>

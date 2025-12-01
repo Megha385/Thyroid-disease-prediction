@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ThyroCheck - Health Assessment</title>
+    <link rel="stylesheet" href="../static/css/check_health.css" />
+</head>
+
+<body>
+    <section class="form-wrapper">
+        <p class="intro-text">Let's check your thyroid health!</p>
+        <p class="instructions">Enter your basic details and (optional) lab values:</p>
+
+        <form id="healthForm" onsubmit="return submitAssessment(event);">
+
+            <h3>Basic Information</h3>
+
+            <label>Age</label>
+            <input type="number" id="age" name="age" required />
+
+            <label>Sex</label>
+            <select id="sex" name="sex">
+                <option value="F">Female</option>
+                <option value="M">Male</option>
+            </select>
+
+            <h3>Lab Test Values (Optional)</h3>
+
+            <label>TSH</label>
+            <input type="number" id="TSH" name="TSH" step="0.01" />
+
+            <label>T3</label>
+            <input type="number" id="T3" name="T3" step="0.01" />
+
+            <label>TT4</label>
+            <input type="number" id="TT4" name="TT4" step="0.01" />
+
+            <label>T4U</label>
+            <input type="number" id="T4U" name="T4U" step="0.01" />
+
+            <label>FTI</label>
+            <input type="number" id="FTI" name="FTI" step="0.01" />
+
+            <label>TBG</label>
+            <input type="number" id="TBG" name="TBG" step="0.01" />
+
+            <button type="submit" class="submit-btn">
+                Get My AI-Powered Results
+            </button>
+        </form>
+    </section>
+
+    <script>
+        async function submitAssessment(event) {
+            event.preventDefault();
+
+            // Prepare data for backend
+            let data = {
+                age: parseInt(document.getElementById("age").value),
+                sex: document.getElementById("sex").value,
+                TSH: parseFloat(document.getElementById("TSH").value) || 0,
+                T3: parseFloat(document.getElementById("T3").value) || 0,
+                TT4: parseFloat(document.getElementById("TT4").value) || 0,
+                T4U: parseFloat(document.getElementById("T4U").value) || 0,
+                FTI: parseFloat(document.getElementById("FTI").value) || 0,
+                TBG: parseFloat(document.getElementById("TBG").value) || 0,
+                referral_source: "other",
+
+                // These flags are needed by your ML model → set defaults
+                on_thyroxine: "f",
+                query_on_thyroxine: "f",
+                on_antithyroid_meds: "f",
+                sick: "f",
+                pregnant: "f",
+                thyroid_surgery: "f",
+                I131_treatment: "f",
+                query_hypothyroid: "f",
+                query_hyperthyroid: "f",
+                lithium: "f",
+                goitre: "f",
+                tumor: "f",
+                hypopituitary: "f",
+                psych: "f",
+                TSH_measured: "t",
+                T3_measured: "t",
+                TT4_measured: "t",
+                T4U_measured: "t",
+                FTI_measured: "t",
+                TBG_measured: "t",
+
+                // Auto additional features
+                T3_TT4_ratio: (parseFloat(document.getElementById("T3").value) || 0) /
+                              (parseFloat(document.getElementById("TT4").value) || 1),
+
+                FTI_TSH_ratio: (parseFloat(document.getElementById("FTI").value) || 0) /
+                               (parseFloat(document.getElementById("TSH").value) || 1),
+
+                TSH_high: (parseFloat(document.getElementById("TSH").value) || 0) > 4 ? "t" : "f",
+                TT4_low: (parseFloat(document.getElementById("TT4").value) || 999) < 80 ? "t" : "f",
+                FTI_low: (parseFloat(document.getElementById("FTI").value) || 999) < 6 ? "t" : "f"
+            };
+
+            console.log("Sending to backend:", data);
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/api/predict-thyroid", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                console.log("Backend result:", result);
+
+                if (!result.success) {
+                    alert("Prediction failed: " + result.message);
+                    return;
+                }
+
+                // Save result locally
+                const finalData = {
+                    ml_prediction: result.ml_prediction,
+                    ml_confidence: result.ml_confidence,
+                    ml_model_accuracy: result.ml_model_accuracy,
+                    ml_full_result: result.ml_full_result,
+                    answers: data,  // Save the input data as answers
+                    date: new Date().toLocaleString()
+                };
+
+                localStorage.setItem("thyrocheck_latest_result", JSON.stringify(finalData));
+
+                // **IMPORTANT FIX**
+                window.location.href = "/results";
+
+            } catch (err) {
+                console.error(err);
+                alert("Server error — Unable to process prediction.");
+            }
+        }
+    </script>
+</body>
+</html>

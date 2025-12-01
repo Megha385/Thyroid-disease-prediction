@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThyroCheck - Thyroid Health Prediction</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 20%, #bbf7d0 40%, #86efac 60%, #4ade80 80%, #22c55e 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Welcome Overlay */
+        .welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(83, 52, 131, 0.95) 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeOut 3.5s ease-in-out forwards;
+        }
+
+        .welcome-content {
+            text-align: center;
+            color: white;
+            animation: welcomeSlide 2.5s ease-out;
+        }
+
+        .welcome-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+
+        .welcome-loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-top: 3px solid #00ffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+
+        @keyframes welcomeSlide {
+            0% { transform: translateY(30px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-top: 2rem;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: #475569;
+            margin-bottom: 1rem;
+        }
+
+        /* Auth Section */
+        .auth-section {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .auth-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .auth-btn {
+            padding: 1rem 2.5rem;
+            border: 2px solid #3b82f6;
+            border-radius: 30px;
+            background: rgba(59, 130, 246, 0.1);
+            color: #2563eb;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .auth-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .auth-btn.active {
+            background: linear-gradient(45deg, #06b6d4, #10b981);
+            color: white;
+            border-color: #06b6d4;
+        }
+
+        /* Forms */
+        .form-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            display: none;
+            animation: slideIn 0.5s ease-out;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        .form-title {
+            color: #1e293b;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 15px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            color: #1e293b;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .form-input[type="password"] {
+            padding-right: 3rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(45deg, #06b6d4, #10b981);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.6);
+        }
+
+        .form-switch {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #64748b;
+        }
+
+        .switch-link {
+            color: #3b82f6;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .switch-link:hover {
+            color: #2563eb;
+        }
+
+        /* Notification System */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 3000;
+        }
+
+        .corner-notification {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            border-left: 4px solid #06b6d4;
+            max-width: 350px;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+        }
+
+        .corner-notification.show {
+            transform: translateX(0);
+        }
+
+        .corner-notification.success {
+            border-left-color: #10b981;
+            background: rgba(240, 253, 244, 0.95);
+        }
+
+        .corner-notification.error {
+            border-left-color: #ef4444;
+            background: rgba(254, 242, 242, 0.95);
+        }
+
+        .notification-text {
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .auth-buttons {
+                flex-direction: column;
+            }
+            .auth-btn {
+                width: 250px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Overlay -->
+    <div class="welcome-overlay" id="welcomeOverlay">
+        <div class="welcome-content">
+            <h1 class="welcome-title">Welcome! 🩺</h1>
+            <p class="welcome-subtitle">To ThyroCheck</p>
+            <div class="welcome-loader"></div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="logo">ThyroCheck</h1>
+            <p class="tagline">Your AI-Powered Thyroid Health Companion</p>
+        </div>
+
+        <!-- Auth Section -->
+        <div class="auth-section">
+            <div class="auth-buttons">
+                <button class="auth-btn active" id="registerBtn" onclick="showRegister()">I'm New Here</button>
+                <button class="auth-btn" id="loginBtn" onclick="showLogin()">I Have Account</button>
+            </div>
+
+            <!-- Register Form -->
+            <div class="form-container active" id="registerForm">
+                <h3 class="form-title">Join Us! 🎉</h3>
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <input type="text" placeholder="Your full name" required class="form-input" id="registerName">
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="Your email" required class="form-input" id="registerEmail">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Create password" required class="form-input" id="registerPassword" oninput="handlePasswordInput(this)">
+                        <button type="button" class="password-toggle" onclick="togglePassword('registerPassword')">🙈</button>
+                    </div>
+                    <button type="submit" class="submit-btn">Create Account</button>
+                </form>
+                <div class="form-switch">
+                    Have account? <span class="switch-link" onclick="showLogin()">Sign in</span>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <div class="form-container" id="loginForm">
+                <h3 class="form-title">Welcome Back! 😊</h3>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <input type="email" placeholder="Your email" required class="form-input" id="loginEmail">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Your password" required class="form-input" id="loginPassword" oninput="handlePasswordInput(this)">
+                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">🙈</button>
+                    </div>
+                    <button type="submit" class="submit-btn">Sign In</button>
+                </form>
+                <div class="form-switch">
+                    New here? <span class="switch-link" onclick="showRegister()">Create account</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var users = JSON.parse(localStorage.getItem('thyrocheck_users') || '[]');
+
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `corner-notification ${type}`;
+            notification.innerHTML = `<span class="notification-text">${message}</span>`;
+            
+            container.appendChild(notification);
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => notification.remove(), 4000);
+        }
+
+        function showLogin() {
+            document.getElementById('registerForm').classList.remove('active');
+            document.getElementById('loginForm').classList.add('active');
+            document.getElementById('registerBtn').classList.remove('active');
+            document.getElementById('loginBtn').classList.add('active');
+        }
+
+        function showRegister() {
+            document.getElementById('loginForm').classList.remove('active');
+            document.getElementById('registerForm').classList.add('active');
+            document.getElementById('loginBtn').classList.remove('active');
+            document.getElementById('registerBtn').classList.add('active');
+        }
+
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const btn = event.target;
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙉';
+            } else {
+                input.type = 'password';
+                btn.textContent = '🙈';
+            }
+        }
+
+        function handlePasswordInput(input) {
+            if (input.value && input.type === 'password') {
+                const btn = input.nextElementSibling;
+                if (btn) btn.textContent = '🙈';
+            }
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+
+            if (users.find(u => u.email === email)) {
+                showNotification('Email already registered', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showNotification('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            const newUser = {
+                id: Date.now(),
+                name: name,
+                email: email,
+                password: password
+            };
+
+            users.push(newUser);
+            localStorage.setItem('thyrocheck_users', JSON.stringify(users));
+            
+            showNotification(`Welcome ${name}! Account created successfully!`, 'success');
+            
+            setTimeout(() => {
+                document.getElementById('loginEmail').value = email;
+                showLogin();
+                event.target.reset();
+            }, 1500);
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            const user = users.find(u => u.email === email && u.password === password);
+
+            if (user) {
+                localStorage.setItem('thyrocheck_current_user', JSON.stringify(user));
+                showNotification(`Welcome back, ${user.name}!`, 'success');
+                
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            } else {
+                showNotification('Incorrect email or password', 'error');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUser = JSON.parse(localStorage.getItem('thyrocheck_current_user') || 'null');
+
+            // If a user is already signed in, show a clear choice rather than forcing a redirect.
+            // This lets users see the welcome page and either continue to the dashboard or switch account.
+            if (currentUser) {
+                const container = document.querySelector('.container');
+                const banner = document.createElement('div');
+                banner.style.maxWidth = '800px';
+                banner.style.margin = '0 auto 1.25rem';
+                banner.style.padding = '1rem';
+                banner.style.background = 'rgba(255,255,255,0.95)';
+                banner.style.borderRadius = '12px';
+                banner.style.boxShadow = '0 10px 30px rgba(2,6,23,0.08)';
+                banner.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                        <div style="flex:1;min-width:220px;">
+                            <strong style="display:block; font-size:1rem; color:#0f172a;">Welcome back, ${currentUser.name.split(' ')[0]}!</strong>
+                            <span style="color:#64748b;">You are currently signed in. Choose an action below:</span>
+                        </div>
+                        <div style="display:flex;gap:0.6rem;">
+                            <button id="continueDashboardBtn" class="submit-btn" style="padding:0.6rem 1rem; font-size:0.95rem;">Continue to Dashboard</button>
+                            <button id="switchAccountBtn" class="auth-btn" style="padding:0.55rem 0.9rem; font-size:0.95rem;">Switch Account / Logout</button>
+                        </div>
+                    </div>
+                `;
+
+                container.insertBefore(banner, container.firstChild);
+
+                document.getElementById('continueDashboardBtn').addEventListener('click', function() {
+                    window.location.href = '/dashboard';
+                });
+
+                document.getElementById('switchAccountBtn').addEventListener('click', function() {
+                    localStorage.removeItem('thyrocheck_current_user');
+                    showNotification('You have been logged out. Please sign in or create an account.', 'info');
+                    banner.remove();
+                });
+
+                // Do not auto-redirect anymore; the user has a clear choice.
+                return;
+            }
+        });
+    </script>
+</body>
+</html>

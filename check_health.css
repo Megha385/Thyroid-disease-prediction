@@ -1,0 +1,109 @@
+/* Reset & base */
+* {
+    box-sizing: border-box;
+}
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #7edea4 0%, #14c57f 100%);
+    min-height: 100vh;
+    color: #1e293b;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+a {
+    text-decoration: none;
+    color: inherit;
+}
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+/* Main form container */
+.form-wrapper {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.12);
+    padding: 2.5rem 3rem;
+    max-width: 600px;
+    width: 100%;
+    color: #142f22;
+    font-weight: 600;
+    user-select: none;
+}
+.form-wrapper p,
+.form-wrapper label {
+    user-select: text;
+}
+.intro-text {
+    margin: 0 0 1rem 0;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+.instructions {
+    font-weight: 500;
+    margin-bottom: 2rem;
+}
+label {
+    display: block;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.6rem;
+    color: #1e3e2e;
+}
+select {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #0f3628;
+    border-radius: 12px;
+    border: 2px solid #90d0b8;
+    background: white url("data:image/svg+xml;utf8,<svg fill='none' stroke='%230f3628' stroke-width='3' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M6 9l6 6 6-6'></path></svg>") no-repeat right 12px center / 1em 1em;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    transition: border-color 0.3s ease;
+}
+select:focus {
+    outline: none;
+    border-color: #16a086;
+    box-shadow: 0 0 10px #16a08680;
+}
+
+button.submit-btn {
+    margin-top: 2rem;
+    width: 100%;
+    background: linear-gradient(90deg, #39cebb 0%, #12a76b 100%);
+    border-radius: 25px;
+    font-weight: 700;
+    color: white;
+    font-size: 1.2rem;
+    padding: 1rem;
+    user-select: none;
+    box-shadow: 0 16px 32px rgb(18 167 107 / 0.7);
+    transition: transform 0.25s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    border: none;
+}
+button.submit-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 26px 52px rgb(18 167 107 / 0.9);
+}
+
+/* Responsive */
+@media (max-width: 650px) {
+    body {
+        padding: 1rem;
+    }
+    .form-wrapper {
+        padding: 2rem 1.5rem;
+        border-radius: 12px;
+    }
+}

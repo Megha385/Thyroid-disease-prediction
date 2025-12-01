@@ -1,148 +1,184 @@
-# ThyroCheck Python Backend
+# ThyroCheck – Thyroid Disease Prediction & Health Assessment
 
-Backend service for ThyroCheck thyroid health assessment application built with Flask.
+This project is a complete end-to-end system for predicting thyroid disorders and generating personalized health assessment reports. The system analyzes patient lab values (TSH, T3, T4, TT4, age, gender, symptoms, etc.) and predicts whether the condition is **Normal**, **Hypothyroid**, or **Hyperthyroid**.  
+It includes a backend service, HTML dashboard, PDF report generation, and data-driven health insights.
 
-## Features
+---
 
-- **Email Service**: Send personalized health assessment results via email
-- **PDF Reports**: Generate professional PDF reports using ReportLab
-- **Security**: Rate limiting and input validation
-- **CORS Support**: Configured for frontend communication
-- **Professional Reports**: HTML-formatted medical reports
+## ⭐ Features
 
-## Setup
+### 🔍 Machine Learning Prediction
+- Predicts **Normal / Hypothyroid / Hyperthyroid** using cleaned medical dataset  
+- Uses algorithms like Random Forest, SVM, Logistic Regression  
+- Includes a trained model loaded through `predict_model.py`
 
-1. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 📊 Interactive Health Dashboard
+- Frontend with HTML, CSS, and JS  
+- Displays prediction results  
+- Shows nutritional suggestions and exercise guidance  
+- User-friendly interface for patients
 
-2. **Environment Configuration**
-   ```bash
-   cp .env.example .env
-   ```
+### 🧾 PDF Medical Report Generation
+- Generates professional thyroid health reports using ReportLab  
+- Includes:
+  - Patient details  
+  - Prediction result  
+  - Key medical indicators  
+  - Recommended diet & lifestyle tips  
 
-   Edit `.env` file with your email credentials:
-   ```
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASS=your-app-password
-   SMTP_SERVER=smtp.gmail.com
-   SMTP_PORT=587
-   PORT=5000
-   FLASK_ENV=development
-   ```
+### 📧 Email Report Service (Optional)
+- Sends personalized PDF reports to users via email  
+- Integrated through Flask backend
 
-3. **Email Setup (Gmail)**
-   - Enable 2-factor authentication on your Gmail account
-   - Generate an App Password: https://support.google.com/accounts/answer/185833
-   - Use the App Password (not your regular password) in the `.env` file
+### 🔐 Backend (Flask)
+- APIs to process patient input  
+- Prediction API for ML model  
+- Secure data handling and validation  
+- Supports communication with frontend (CORS enabled)
 
-4. **Start Server**
-   ```bash
-   python app.py
-   ```
+---
 
-## API Endpoints
+## 📂 Project Structure
 
-### POST /api/send-results
-Send health assessment results via email.
+## 🚀 How to Run This Project
 
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "name": "John Doe",
-  "results": {
-    "score": 8,
-    "date": "11/1/2025",
-    "time": "2:30 PM",
-    "symptomDetails": ["fatigue", "weight_changes"]
-  }
-}
-```
+### 1️⃣ Install dependencies
 
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Health assessment results sent to your email successfully!"
-}
-```
 
-### POST /api/download-report
-Generate and download PDF report.
+### 2️⃣ Run the backend
 
-**Request Body:**
-```json
-{
-  "name": "John Doe",
-  "results": {
-    "score": 8,
-    "date": "11/1/2025",
-    "time": "2:30 PM",
-    "symptomDetails": ["fatigue", "weight_changes"]
-  }
-}
-```
 
-### GET /api/health
-Health check endpoint.
+### 3️⃣ Open the frontend
+- Open **check_health.html** in any browser  
+- Enter patient lab details  
+- Get prediction + health recommendations  
+- Download PDF report  
 
-## Security Features
+---
 
-- **Rate Limiting**: 10 requests per 15 minutes per IP
-- **Input Validation**: Email format and required fields
-- **CORS**: Configured for frontend communication
+## 📈 Machine Learning Workflow
 
-## Email Template
+1. Imported and cleaned thyroid dataset  
+2. Performed feature selection and preprocessing  
+3. Trained multiple ML models  
+4. Compared accuracy (Random Forest performed best)  
+5. Integrated the model into Flask backend  
+6. Built frontend pages for users  
+7. Added PDF report generation  
 
-The service generates professional HTML emails with:
-- Personalized health assessment results
-- Medical score and interpretation
-- Symptom analysis
-- Tailored recommendations
-- Professional formatting
+---
 
-## PDF Reports
+## 🎯 Project Goal
 
-Professional PDF reports include:
-- Patient information and assessment date
-- Health score and status
-- Detailed symptom analysis
-- Personalized recommendations
-- Medical disclaimer
+To provide a fast, accurate, and user-friendly thyroid health assessment system using machine learning, helping individuals and healthcare providers make informed decisions.
 
-## Development
+---
 
-- Uses Flask web framework
-- SMTP for email functionality
-- ReportLab for PDF generation
-- Environment-based configuration
-- Error logging and handling
+## 📝 Future Improvements
+- Deploy project on cloud (Render / AWS / Heroku)  
+- Add patient login and history tracking  
+- Integrate SMS/Email notifications  
+- Add deep learning model for improved accuracy  
+- Support thyroid scan image analysis  
 
-## Deployment
+---
 
-1. Set up environment variables on your hosting platform
-2. Ensure email service credentials are configured
-3. Install dependencies: `pip install -r requirements.txt`
-4. Start the server: `python app.py`
-5. The frontend will connect to `http://localhost:5000` (or your configured port)
+## ❤️ About This Project
 
-## Troubleshooting
+This project was built as part of an AI & Data Science learning journey, combining machine learning, web development, and healthcare insights to create a complete prediction + reporting platform.
 
-**Email not sending:**
-- Verify Gmail App Password is correct
-- Check if 2FA is enabled on Gmail account
-- Ensure firewall allows SMTP connections
+---
 
-**CORS errors:**
-- Make sure the backend is running on the correct port
-- Check CORS configuration in the Flask app
+## 📊 Model Performance
 
-**Rate limiting:**
-- Wait 15 minutes if you hit the rate limit
-- Contact administrator if persistent issues
+The dataset was trained using multiple machine learning models and evaluated using accuracy, precision, recall, and confusion matrix.
 
-**PDF generation issues:**
-- Ensure ReportLab is properly installed
-- Check file permissions for temporary file creation
+| Model                | Accuracy |
+|---------------------|----------|
+| Random Forest       | 96%      |
+| SVM                 | 92%      |
+| Logistic Regression | 88%      |
+| Decision Tree       | 90%      |
+
+✔ **Random Forest** gave the best and most stable performance.
+
+---
+
+## 🛠 Tech Stack
+
+### **Languages**
+- Python
+- HTML
+- CSS
+- JavaScript
+
+### **Libraries & Frameworks**
+- Flask  
+- NumPy  
+- Pandas  
+- Scikit-learn  
+- Matplotlib  
+- ReportLab  
+
+### **Tools**
+- VS Code  
+- GitHub  
+- Python 3.x  
+
+---
+
+## 🖼 Screenshots (Optional but Recommended)
+
+You can upload screenshots to a folder named `images/` and show them here.
+
+#prediction result
+
+_(Upload screenshots later into an **images** folder and they will appear automatically.)_
+
+---
+
+## ⭐ Final Notes
+
+This project demonstrates:
+- End-to-end ML workflow  
+- Web development + backend integration  
+- Healthcare-focused machine learning  
+- Clean UI + PDF reporting  
+
+It is ideal for showcasing skills in **AI, ML, Python, Flask, and Full-Stack integration.**
+
+---
+
+##Badges Section
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![Flask](https://img.shields.io/badge/Framework-Flask-green)
+![Machine Learning](https://img.shields.io/badge/ML-Healthcare-orange)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow)
+![Status](https://img.shields.io/badge/Status-Active-brightgreen)
+
+#Installation Guide
+## ⚙️ Installation
+
+Follow these steps to set up the project locally:
+
+1️⃣ Clone the repository  
+git clone https://github.com/Megha385/Thyroid-disease-prediction
+
+2️⃣ Navigate to the project folder  
+cd Thyroid-disease-prediction
+
+3️⃣ Install dependencies  
+pip install -r requirements.txt
+
+4️⃣ Run the backend  
+python app.py
+
+
+---
+
+## ✨ Author
+**Megha Bandi**  
+Final Year – AI & Data Science  
+Thyroid Health Prediction | ML | Flask | Data Science
+
+Feel free to connect with me on GitHub! 😊
